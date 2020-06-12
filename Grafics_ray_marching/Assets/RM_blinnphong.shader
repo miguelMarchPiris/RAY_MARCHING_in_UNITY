@@ -3,10 +3,16 @@
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-        _id_figura("Id. Sph: 0 |Sphs: 1 | InfSph: 2 | Toro: 3 |Tetra: 4", Int) = 0
+        _id_figura("Id.S:0 |Ss:1 |InfSph:2 |To:3 |T:4 | TFold:5 |TS: 6 | Mandle: 7", Int) = 0
         _id_AO("ID Ambient Occlusion: NO: 0 | RayStep: 1 | NormalSampling: 2 ", Int) = 0
         _num_normal_samples("Num normal samples", Int) = 5
         _ambient_global("Ambiente Global", Color) = (0,0,0,0)
+
+        _scale_tetra("SCALE TETRA: ",Float) = 1.66
+
+        //Sphere 
+        _sphere ("Esfera (centro y radio)", Vector) = (0,0,0,0)
+        _id_formula_solidos("U: 1 | I: 2 | RS: 3 | RT: 4 | SmU: 5 | ", Int) = 1
 
         //Light
         _light_pos ("Posición luz", Vector) = (0,0,0,0) 
@@ -55,6 +61,12 @@
             int _id_figura;
             int _id_AO;
             int _num_normal_samples;
+
+            //Sphere con TetraFold
+            int _id_formula_solidos;
+            float4 _sphere;
+            float _scale_tetra;
+
 
             //Ambiente global
             fixed4 _ambient_global;
@@ -120,6 +132,43 @@
             static Light light;
             static Mat mat;
 
+            //Operaciones de Intersección, union, unión suave y diferencia
+            float solids_intersection(float distA, float distB) {
+                return max(distA, distB);
+            }
+
+            float solids_union(float distA, float distB) {
+                return min(distA, distB);
+            }
+
+            float solids_smooth_union(float distA, float distB) {
+                float k = 0.75;
+                float h = max(k-abs(distA-distB),0.)/k;
+                return min(distA, distB) - pow(h,3.)*k*(1./6.);
+            }
+
+            float solids_difference(float distA, float distB) {
+                return max(distA, -distB);
+            }
+            //Para escoger cual de las operaciones de solidos queremos aplicar desde el editor.
+            float solids_formula(float distA, float distB){
+                switch(_id_formula_solidos){
+                    case 1:
+                        return solids_union(distA,distB); 
+                    case 2:
+                        return solids_intersection(distA,distB);
+                    case 3:
+                        return solids_difference(distA,distB);
+                    case 4:
+                        return solids_difference(distB,distA);
+                    case 5:
+                        return solids_smooth_union(distA,distB);
+                    default:
+                        return solids_difference(distB,distA); 
+                }
+			}
+
+
             float DistSphere(float3 p){
                 float r = 0.2;
                 float c = float3(-0.4,0,0);
@@ -128,27 +177,71 @@
 
             float DE_tetraedro(float3 z){
             
-            int Iterations = 24;
-            float Scale = 2.0;
+                int Iterations = 24;
+                float Scale = 2.0;
             
-            float size= 0.5;
-            float3 a1 = float3(1,1,1)  * size;
-            float3 a2 = float3(-1,-1,1)* size;
-            float3 a3 = float3(1,-1,-1)* size;
-            float3 a4 = float3(-1,1,-1)* size;
-            float3 c;
-            int n = 0;
-            float dist, d;
-            while (n < Iterations) {
-            		c = a1; dist = length(z-a1);
-            	    d = length(z-a2); if (d < dist) { c = a2; dist=d; }
-            		d = length(z-a3); if (d < dist) { c = a3; dist=d; }
-		            d = length(z-a4); if (d < dist) { c = a4; dist=d; }
-            	z = Scale*z-c*(Scale-1.0);
-            	n++;
-           	}
+                float size= 0.5;
+                float3 a1 = float3(1,1,1)  * size;
+                float3 a2 = float3(-1,-1,1)* size;
+                float3 a3 = float3(1,-1,-1)* size;
+                float3 a4 = float3(-1,1,-1)* size;
+                float3 c;
+                int n = 0;
+                float dist, d;
+                while (n < Iterations) {
+            		    c = a1; dist = length(z-a1);
+            	        d = length(z-a2); if (d < dist) { c = a2; dist=d; }
+            		    d = length(z-a3); if (d < dist) { c = a3; dist=d; }
+		                d = length(z-a4); if (d < dist) { c = a4; dist=d; }
+            	    z = Scale*z-c*(Scale-1.0);
+            	    n++;
+           	    }
 
-	         return length(z) * pow(Scale, float(-n)); 
+	             return length(z) * pow(Scale, float(-n)); 
+            }
+
+            float DE_tetraedro_fold(float3 p){
+                int Iterations = 23;
+                float t = _SinTime.z;//fmod(_Time.z*0.2,1.);
+                float Scale = _scale_tetra + t * 0.165;
+                float3 offset = float3(1.,1.,1.) * 0.5;
+                float r;
+                int n = 0;
+                while (n < Iterations) {
+                   if(p.x+p.y<0) p.xy = -p.yx; // Pliegue 1
+                   if(p.x+p.z<0) p.xz = -p.zx; // Pliegue 2
+                   if(p.y+p.z<0) p.zy = -p.yz; // Pliegue 3	
+                   p = p*Scale - offset*(Scale-1.0);
+                   n++;
+                }
+                return (length(p) ) * pow(Scale, -float(n));
+            }
+
+            float GetDistMandlebulb(float3 p) {
+                p*=2.;
+                int power = 8;
+                float3 z = p ;
+                float dr = 1.0;
+                float r = 0.0;
+                for (int i = 0; i < 20; i++) {
+                    r = length(z);
+                    if (r > 100) break;
+
+                    // convert to polar coordinates
+                    float theta = acos(z.z / r);
+                    float phi = atan2(z.y, z.x);
+                    dr = pow(r, power - 1.0) * power * dr + 1.0;
+
+                    // scale and rotate the point
+                    float zr = pow(r, power);
+                    theta = theta * power;
+                    phi = phi * power;
+
+                    // convert back to cartesian coordinates
+                    z = zr * float3(sin(theta) * cos(phi), sin(phi) * sin(theta), cos(theta));
+                    z += p;
+                }
+                return 0.5 * log(r) * r / dr;
             }
 
             float DistScene1(float3 p){
@@ -167,12 +260,13 @@
             float DistInfSpheres(float3 p){
                 float dp =100.;// p.y + 0.95;
                 
-                p.xy = fmod((p.xy),1.0) + 0.5; // instance on xy-plane
+                p.xyz = fmod((p.xyz),1.0) + 0.5; // instance on xy-plane
                 return min(length(p)-0.2,dp);  
 
                 
                 float r = 0.2;
-                float c = float3(-0.3,0,0);
+                float t = fmod(_Time.y,70.);
+                float c = float3(-0.3 + t*0.8,0,0);
                 float altura = -0.5;
                 float d = length(p-c) - r;
                 return min(d,p.y+altura);
@@ -183,16 +277,26 @@
 			}
 
             float DistSpheres(float3 p){
-                float r1 = 0.2;
+                float r1 = _sphere.w * 0.1;
+                float c1 = _sphere.xyz;
+
                 float r2 = 0.2;
-                float c1 = float3(0.2,0,0);
                 float c2 = float3(0,0,0);
+                // no se que pasa que aunque cambie c1.y o z  no se mueve, pero con la x si
                 float d1 = length(p-c1) - r1;
                 float d2 = length(p-c2) - r2;
+                
+                return solids_formula(d2,d1);
 
-                return min(d1,d2);
+			}
 
-                // return min(length(p-c1) - r1, length(p-c2) - r2);
+            float DistTetraSphere(float3 p){
+                float r1 = _sphere.w * 0.1 + 0.05 + _SinTime.w * 0.075  ;
+                float c1 = _sphere.xyz/10.;
+                float d1 = length(p-c1) - r1;
+                float d2 = DE_tetraedro_fold(p);
+                
+                return solids_formula(d2,d1);
 			}
 
             float DistToro(float3 p){
@@ -202,9 +306,6 @@
 			}
 
             float GetDist(float3 p) {
-                if(_id_figura==0){
-                
-				}
                 switch(_id_figura){
                     case 0:
                         return DistSphere(p); 
@@ -216,6 +317,12 @@
                         return DistToro(p);
                     case 4:
                         return DE_tetraedro(p);
+                    case 5:
+                        return DE_tetraedro_fold(p);
+                    case 6:
+                        return DistTetraSphere(p);
+                    case 7:
+                        return GetDistMandlebulb(p);
                     default:
                         return DistSphere(p); 
                 }
@@ -225,14 +332,6 @@
 
             float3 GetNormal(float3 p){
                 float2 e = float2(SURF_DIST*5.,0);
-                
-                /*float3 n = GetDist(p) - float3(
-                    GetDist(p-e.xyy),
-                    GetDist(p-e.yxy),
-                    GetDist(p-e.yyx)
-                    );
-                return normalize(n);
-                */
 
                 float3 n = normalize(float3(
                     GetDist(p+e.xyy)-GetDist(p-e.xyy),
@@ -303,7 +402,7 @@
 
                 // material segun las Properties
                 mat.Ia = _mat_amb;
-                mat.Id = _mat_dif;
+                mat.Id = _mat_dif;// float4(_SinTime.x*0.5,_SinTime.y*0.5,_SinTime.z*0.5,0.5)+0.5;//
                 mat.Is = _mat_spe;
                 mat.shine = _mat_shine;
 
@@ -389,7 +488,7 @@
                         float AOF_global = AO_factors.y;
 
                         
-                                                
+                        compDif += GetNormal(p)*0.5;        
                         colorG+=(compDif + compSpe) + compAmb*AOF_mat;
                     //}
 

@@ -56,9 +56,9 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - MAX_DIST: 30
-    - MAX_STEPS: 100
-    - SURF_DIST: 0.0001
+    - MAX_DIST: 5000
+    - MAX_STEPS: 200
+    - SURF_DIST: 0.00005
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
@@ -76,27 +76,30 @@ Material:
     - _UVSec: 0
     - _ZWrite: 1
     - _id_AO: 2
-    - _id_figura: 4
-    - _light_angle: 41.5
-    - _mat_shine: 51.25
+    - _id_figura: 6
+    - _id_formula_solidos: 3
+    - _light_angle: 40.31
+    - _mat_shine: 66.3
     - _max_dist: 100
     - _max_steps: 100
     - _num_normal_samples: 15
+    - _scale_tetra: 1.681
     - _surf_dist: 0.0001
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _amb: {r: 0.8018868, g: 0.2988163, b: 0.2988163, a: 1}
-    - _ambient_global: {r: 0.24528301, g: 0.22467291, b: 0.119170524, a: 0}
+    - _ambient_global: {r: 0.32941177, g: 0, b: 0, a: 0}
     - _ambiental: {r: 0.50534, g: 0.50635815, b: 0.6415094, a: 1}
     - _dif: {r: 1, g: 1, b: 1, a: 1}
-    - _light_amb: {r: 0.32339472, g: 0.3679245, b: 0.2481755, a: 1}
-    - _light_dif: {r: 0.8, g: 0.37254903, b: 0.4865764, a: 1}
+    - _light_amb: {r: 0.65882355, g: 0.28627452, b: 0, a: 1}
+    - _light_dif: {r: 0.25582817, g: 0.99215686, b: 0.16470586, a: 1}
     - _light_dir: {r: 0, g: -1, b: 0, a: 1}
-    - _light_pos: {r: -3.41, g: 1.71, b: 0.34, a: 1}
-    - _light_spe: {r: 1, g: 1, b: 1, a: 1}
+    - _light_pos: {r: 32.93, g: 2.96, b: 0.34, a: 1}
+    - _light_spe: {r: 0.21800463, g: 0.62552714, b: 0.6698113, a: 1}
     - _lightpos: {r: 0, g: 0, b: 0, a: 0}
-    - _mat_amb: {r: 0.5, g: 0.4268868, b: 0.4268868, a: 1}
-    - _mat_dif: {r: 1, g: 0.078311674, b: 0, a: 1}
-    - _mat_spe: {r: 1, g: 1, b: 1, a: 1}
+    - _mat_amb: {r: 0.6603774, g: 0.28552845, b: 0, a: 1}
+    - _mat_dif: {r: 0.990566, g: 0.16353682, b: 0.40860996, a: 1}
+    - _mat_spe: {r: 0.14208794, g: 0.2924528, b: 0.23727642, a: 1}
     - _spe: {r: 1, g: 1, b: 1, a: 1}
+    - _sphere: {r: 3.13, g: 0.5, b: 0.38, a: 2.17}
