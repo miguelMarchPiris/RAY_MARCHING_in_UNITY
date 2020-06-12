@@ -58,7 +58,7 @@ Material:
     m_Floats:
     - MAX_DIST: 5000
     - MAX_STEPS: 200
-    - SURF_DIST: 0.00005
+    - SURF_DIST: 0.0003
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
@@ -75,7 +75,7 @@ Material:
     - _SrcBlend: 1
     - _UVSec: 0
     - _ZWrite: 1
-    - _id_AO: 2
+    - _id_AO: 1
     - _id_figura: 6
     - _id_formula_solidos: 3
     - _light_angle: 40.31
@@ -83,7 +83,7 @@ Material:
     - _max_dist: 100
     - _max_steps: 100
     - _num_normal_samples: 15
-    - _scale_tetra: 1.681
+    - _scale_tetra: 1.7
     - _surf_dist: 0.0001
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
@@ -102,4 +102,4 @@ Material:
     - _mat_dif: {r: 0.990566, g: 0.16353682, b: 0.40860996, a: 1}
     - _mat_spe: {r: 0.14208794, g: 0.2924528, b: 0.23727642, a: 1}
     - _spe: {r: 1, g: 1, b: 1, a: 1}
-    - _sphere: {r: 3.13, g: 0.5, b: 0.38, a: 2.17}
+    - _sphere: {r: 3.13, g: 0.5, b: 0.38, a: 2}
